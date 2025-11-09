@@ -55,7 +55,7 @@
             <tr class="bg-gray-100">
                 <th class="px-3 py-2 border">No</th>
                 <th class="px-3 py-2 border">Nama Peserta</th>
-                <th class="px-3 py-2 border">Email</th>
+                <th class="px-3 py-2 border">Jenis Ujian</th>
                 <th class="px-3 py-2 border">Benar</th>
                 <th class="px-3 py-2 border">Salah</th>
                 <th class="px-3 py-2 border">Total Soal</th>
@@ -68,7 +68,7 @@
                 <tr class="hover:bg-gray-50 transition">
                     <td class="px-3 py-2 border text-center">{{ $index + 1 }}</td>
                     <td class="px-3 py-2 border">{{ $hasil['nama'] ?? '-' }}</td>
-                    <td class="px-3 py-2 border">{{ $hasil['email'] ?? '-' }}</td>
+                    <td class="px-3 py-2 border">{{ $hasil['jenis_ujian'] ?? '-' }}</td>
                     <td class="px-3 py-2 border text-center">{{ $hasil['benar'] ?? 0 }}</td>
                     <td class="px-3 py-2 border text-center">
                         {{ max(0, ($hasil['total'] ?? 0) - ($hasil['benar'] ?? 0)) }}
@@ -93,7 +93,7 @@
                 </tr>
             @empty
                 <tr>
-                    <td colspan="7" class="px-3 py-4 border text-center text-gray-600">
+                    <td colspan="8" class="px-3 py-4 border text-center text-gray-600">
                         Belum ada peserta yang mengikuti ujian.
                     </td>
                 </tr>

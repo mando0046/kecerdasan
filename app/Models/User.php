@@ -21,6 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+         'role', 
     ];
 
     /**
@@ -53,5 +54,11 @@ public function examAttempts()
 {
     return $this->hasMany(ExamAttempt::class);
 }
+
+public function questions()
+{
+    return $this->hasMany(Question::class); // jika ingin hitung soal total
+}
+
 
 }

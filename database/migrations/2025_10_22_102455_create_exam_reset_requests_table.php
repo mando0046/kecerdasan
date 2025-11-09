@@ -10,13 +10,19 @@ return new class extends Migration
     {
         Schema::create('exam_reset_requests', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
-            $table->text('reason')->nullable();
-            $table->timestamps();
 
-            // Relasi ke tabel users (opsional)
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            // Relasi ke user
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+
+            // Alasan dan status
+            $table->text('reason')->nullable();
+            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+
+            // Waktu permintaan
+            $table->timestamp('requested_at')->nullable();
+
+            // Timestamps otomatis created_at & updated_at
+            $table->timestamps();
         });
     }
 

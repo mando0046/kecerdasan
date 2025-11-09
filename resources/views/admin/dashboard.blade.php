@@ -26,7 +26,7 @@
             </li>
             <li>
                 <a href="{{ route('admin.exam-reset.index') }}" class="text-green-700 hover:underline">
-                    Permintaan Reset Ujian
+                    🔄 Permintaan Reset Ujian
                 </a>
             </li>
         </ul>

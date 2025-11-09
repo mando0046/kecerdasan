@@ -25,7 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // kalau mau spesifik per-role juga boleh tetap ada:
         'admin'    => \App\Http\Middleware\AdminMiddleware::class,
+         'operator' => \App\Http\Middleware\OperatorMiddleware::class,
         'peserta'  => \App\Http\Middleware\PesertaMiddleware::class,
+
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

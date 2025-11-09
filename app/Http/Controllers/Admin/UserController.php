@@ -70,12 +70,12 @@ class UserController extends Controller
             return back()->withErrors(['Anda tidak dapat mereset password akun Anda sendiri.']);
         }
 
-        $user->password = Hash::make('123456');
+        $user->password = Hash::make('12345678');
         $user->save();
 
         return redirect()
             ->route('admin.users.edit', $user->id)
-            ->with('success', '🔄 Password berhasil direset ke default: 123456');
+            ->with('success', '🔄 Password berhasil direset ke default: 12345678');
     }
 
     /**
@@ -132,7 +132,7 @@ class UserController extends Controller
     public function updateRole(Request $request, $id)
     {
         $request->validate([
-            'role' => 'required|in:admin,peserta,guest',
+            'role' => 'required|in:admin,operator,peserta,guest',
         ]);
 
         $user = User::findOrFail($id);

@@ -5,138 +5,151 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Question;
+use App\Models\Exam;
 use App\Models\Answer;
 use Illuminate\Support\Facades\Storage;
 
 class SoalController extends Controller
 {
-    // 🟢 Tampilkan semua soal
+    /**
+     * 🟢 Tampilkan semua soal
+     */
     public function index()
     {
-        $questions = Question::orderBy('id', 'asc')->get();
+        $questions = Question::with('exam')->orderBy('id', 'asc')->get();
         return view('admin.soal.index', compact('questions'));
     }
 
-    // 🟢 Form tambah soal
+    /**
+     * 🟢 Form tambah soal
+     */
     public function create()
     {
-        return view('admin.soal.create');
+        $exams = Exam::all();
+        return view('admin.soal.create', compact('exams'));
     }
 
-    // 🟢 Simpan soal baru
+    /**
+     * 🟢 Simpan soal baru
+     */
     public function store(Request $request)
     {
         $request->validate([
-            'question' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,jpg|max:2048',
-            'answer' => 'required|string|in:a,b,c,d,e',
-            'option_a' => 'required|string',
-            'option_b' => 'required|string',
-            'option_c' => 'required|string',
-            'option_d' => 'required|string',
-            'option_e' => 'required|string',
-            'option_image_a' => 'nullable|image|mimes:jpeg,jpg|max:2048',
-            'option_image_b' => 'nullable|image|mimes:jpeg,jpg|max:2048',
-            'option_image_c' => 'nullable|image|mimes:jpeg,jpg|max:2048',
-            'option_image_d' => 'nullable|image|mimes:jpeg,jpg|max:2048',
-            'option_image_e' => 'nullable|image|mimes:jpeg,jpg|max:2048',
-        ], [
-            '*.max' => 'Ukuran gambar melebihi 2048 MB'
+            'exam_id'   => 'required|exists:exams,id',
+            'question'  => 'required|string',
+            'option_a'  => 'required|string',
+            'option_b'  => 'required|string',
+            'option_c'  => 'required|string',
+            'option_d'  => 'required|string',
+            'option_e'  => 'required|string',
+            'answer'    => 'required|in:a,b,c,d,e',
+            'image'             => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_a'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_b'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_c'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_d'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_e'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
         ]);
 
         $data = $request->only([
-            'question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'answer'
+            'exam_id', 'question', 'option_a', 'option_b',
+            'option_c', 'option_d', 'option_e', 'answer'
         ]);
 
-        // Simpan gambar pertanyaan
+        $path = 'soal_images';
+
+        // Upload gambar pertanyaan
         if ($request->hasFile('image')) {
-            $data['question_image'] = $request->file('image')->store('soal_images', 'public');
+            $data['question_image'] = $request->file('image')->store($path, 'public');
         }
 
-        // Simpan gambar pilihan jawaban
+        // Upload gambar tiap opsi
         foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
-            if ($request->hasFile("option_image_$opt")) {
-                $data["option_image_$opt"] = $request->file("option_image_$opt")->store('soal_images', 'public');
+            $key = "option_image_$opt";
+            if ($request->hasFile($key)) {
+                $data[$key] = $request->file($key)->store($path, 'public');
             }
         }
 
         Question::create($data);
-        return redirect()->route('admin.soal.index')->with('success', '✅ Soal berhasil disimpan!');
+
+        return redirect()->route('admin.soal.index')
+            ->with('success', '✅ Soal berhasil disimpan.');
     }
 
-    // 🟡 Form edit soal
+    /**
+     * 🟡 Form edit soal
+     */
     public function edit(Question $soal)
     {
-        return view('admin.soal.edit', compact('soal'));
+        $exams = Exam::all();
+        return view('admin.soal.edit', compact('soal', 'exams'));
     }
 
-    // 🟡 Update soal lama
+    /**
+     * 🟡 Update soal
+     */
     public function update(Request $request, $id)
     {
         $question = Question::findOrFail($id);
 
         $validated = $request->validate([
+            'exam_id' => 'required|exists:exams,id',
             'question' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,jpg|max:2048',
             'option_a' => 'required|string',
-            'option_image_a' => 'nullable|image|mimes:jpeg,jpg|max:2048',
             'option_b' => 'required|string',
-            'option_image_b' => 'nullable|image|mimes:jpeg,jpg|max:2048',
             'option_c' => 'required|string',
-            'option_image_c' => 'nullable|image|mimes:jpeg,jpg|max:2048',
             'option_d' => 'required|string',
-            'option_image_d' => 'nullable|image|mimes:jpeg,jpg|max:2048',
             'option_e' => 'required|string',
-            'option_image_e' => 'nullable|image|mimes:jpeg,jpg|max:2048',
-            'answer' => 'required|in:a,b,c,d,e',
-        ], [
-            '*.max' => 'Ukuran gambar melebihi 2048 MB'
+            'answer'   => 'required|in:a,b,c,d,e',
+            'image'             => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_a'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_b'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_c'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_d'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
+            'option_image_e'    => 'nullable|image|mimes:jpeg,jpg,png|max:2048',
         ]);
 
         $path = 'soal_images';
 
-        // Hapus gambar pertanyaan lama jika diminta
+        // Hapus gambar lama jika ada flag penghapusan
         if ($request->has('delete_old_image') && $question->question_image) {
             Storage::disk('public')->delete($question->question_image);
             $question->question_image = null;
         }
 
-        // Hapus gambar opsi lama jika dicentang
-        foreach (['a','b','c','d','e'] as $opt) {
-            if ($request->has("delete_old_option_image_{$opt}") && $question->{"option_image_{$opt}"}) {
-                Storage::disk('public')->delete($question->{"option_image_{$opt}"});
-                $question->{"option_image_{$opt}"} = null;
+        foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
+            $old = "option_image_{$opt}";
+            if ($request->has("delete_old_{$old}") && $question->$old) {
+                Storage::disk('public')->delete($question->$old);
+                $question->$old = null;
             }
         }
 
-        // Upload gambar pertanyaan baru
+        // Upload baru jika ada
         if ($request->hasFile('image')) {
-            if ($question->question_image) {
-                Storage::disk('public')->delete($question->question_image);
-            }
+            if ($question->question_image) Storage::disk('public')->delete($question->question_image);
             $question->question_image = $request->file('image')->store($path, 'public');
         }
 
-        // Upload gambar tiap opsi baru
-        foreach (['a','b','c','d','e'] as $opt) {
+        foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
             $field = "option_image_{$opt}";
             if ($request->hasFile($field)) {
-                if ($question->$field) {
-                    Storage::disk('public')->delete($question->$field);
-                }
+                if ($question->$field) Storage::disk('public')->delete($question->$field);
                 $question->$field = $request->file($field)->store($path, 'public');
             }
         }
 
         // Update data teks
         $question->update([
+            'exam_id' => $validated['exam_id'],
             'question' => $validated['question'],
             'option_a' => $validated['option_a'],
             'option_b' => $validated['option_b'],
             'option_c' => $validated['option_c'],
             'option_d' => $validated['option_d'],
             'option_e' => $validated['option_e'],
-            'answer' => $validated['answer'],
+            'answer'   => $validated['answer'],
             'question_image' => $question->question_image,
             'option_image_a' => $question->option_image_a,
             'option_image_b' => $question->option_image_b,
@@ -145,38 +158,46 @@ class SoalController extends Controller
             'option_image_e' => $question->option_image_e,
         ]);
 
-        return redirect()->route('admin.soal.index')->with('success', '✅ Soal berhasil diperbarui.');
+        return redirect()->route('admin.soal.index')
+            ->with('success', '✅ Soal berhasil diperbarui.');
     }
 
-    // 🗑️ Hapus soal
+    /**
+     * 🗑️ Hapus soal
+     */
     public function destroy(Question $soal)
     {
         if ($soal->question_image) Storage::disk('public')->delete($soal->question_image);
         foreach (['a', 'b', 'c', 'd', 'e'] as $opt) {
-            if ($soal->{"option_image_$opt"}) {
-                Storage::disk('public')->delete($soal->{"option_image_$opt"});
-            }
+            $field = "option_image_{$opt}";
+            if ($soal->$field) Storage::disk('public')->delete($soal->$field);
         }
 
         $soal->delete();
-        return redirect()->route('admin.soal.index')->with('success', '🗑 Soal berhasil dihapus.');
+        return redirect()->route('admin.soal.index')
+            ->with('success', '🗑 Soal berhasil dihapus.');
     }
 
-    // 🔄 Reset semua soal & jawaban
+    /**
+     * 🔄 Reset semua soal & jawaban
+     */
     public function reset()
     {
-        Answer::query()->delete();
-        Question::query()->delete();
+        Answer::truncate();
+        Question::truncate();
 
         return redirect()->route('admin.soal.index')
             ->with('success', '🧹 Semua soal dan jawaban berhasil dihapus!');
     }
 
-    // 📤 Upload soal dari CSV
+    /**
+     * 📤 Upload soal dari CSV
+     */
     public function upload(Request $request)
     {
         $request->validate([
-            'file' => 'required|mimes:csv,txt'
+            'file' => 'required|mimes:csv,txt',
+            'exam_id' => 'required|exists:exams,id'
         ]);
 
         $file = $request->file('file');
@@ -195,6 +216,8 @@ class SoalController extends Controller
 
         $expected = ['question', 'option_a', 'option_b', 'option_c', 'option_d', 'option_e', 'answer'];
         if ($header !== $expected) {
+            fclose($handle);
+            unlink($tempPath);
             return back()->with('error', '❌ Format header CSV tidak sesuai.');
         }
 
@@ -203,13 +226,14 @@ class SoalController extends Controller
             if (count($row) < 7) continue;
 
             Question::create([
+                'exam_id' => $request->exam_id,
                 'question' => trim($row[0]),
                 'option_a' => trim($row[1]),
                 'option_b' => trim($row[2]),
                 'option_c' => trim($row[3]),
                 'option_d' => trim($row[4]),
                 'option_e' => trim($row[5]),
-                'answer' => strtolower(trim($row[6])),
+                'answer'   => strtolower(trim($row[6])),
             ]);
             $count++;
         }

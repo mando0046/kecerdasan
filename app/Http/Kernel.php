@@ -77,6 +77,7 @@ class Kernel extends HttpKernel
 
         // Custom middleware kamu (misalnya role admin/peserta)
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+         'operator' => \App\Http\Middleware\OperatorMiddleware::class,
         'peserta' => \App\Http\Middleware\PesertaMiddleware::class,
     ];
 

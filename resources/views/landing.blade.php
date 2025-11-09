@@ -1,13 +1,32 @@
 <x-app-layout>
     <div class="min-h-screen bg-gray-100 flex flex-col">
+        <!-- 🔔 Flash Message -->
+        @if (session('success'))
+            <div id="flash-message" class="max-w-4xl mx-auto mt-6 px-6 transition-opacity duration-700">
+                <div class="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded relative shadow">
+                    {{ session('success') }}
+                </div>
+            </div>
+
+            <!-- Auto-hide after 2 seconds -->
+            <script>
+                setTimeout(() => {
+                    const flash = document.getElementById('flash-message');
+                    if (flash) {
+                        flash.style.opacity = '0';
+                        setTimeout(() => flash.remove(), 300); // hilang halus
+                    }
+                }, 2000);
+            </script>
+        @endif
 
         <!-- Hero Section -->
-        <div class="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto px-6 py-16 md:py-24 gap-10">
+        <div class="flex flex-col md:flex-row items-center justify-between max-w-6xl mx-auto px-6 py-8 md:py-12 gap-10">
 
             <!-- Text Content -->
-            <div class="md:w-1/2 flex flex-col justify-center space-y-6">
-                <h1 class="text-5xl md:text-6xl font-bold text-green-700">
-                    Ujian Online
+            <div class="md:w-1/2 flex flex-col justify-center space-y-3 mt-0">
+                <h1 class="text-5xl md:text-6xl font-bold text-green-700 leading-tight">
+                    Simulasi Ujian Online Psikologi
                 </h1>
 
                 {{-- Guest (belum login) --}}
@@ -41,6 +60,17 @@
                         <a href="{{ route('admin.dashboard') }}"
                             class="mt-4 inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow transition-all duration-300">
                             Masuk ke Dashboard Admin
+                        </a>
+                    @elseif(Auth::user()->role === 'operator')
+                        <p class="text-lg text-gray-700">
+                            Selamat datang, <span class="font-semibold text-green-700">{{ Auth::user()->name }}</span>!<br>
+                            Anda login sebagai <span class="font-semibold">Operator</span>.<br>
+                            Silakan masuk ke dashboard untuk approved, create, edit atau update soal.
+                        </p>
+
+                        <a href="{{ route('operator.dashboard') }}"
+                            class="mt-4 inline-block px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow transition-all duration-300">
+                            Masuk ke Dashboard Operator
                         </a>
                     @elseif(Auth::user()->role === 'peserta')
                         <p class="text-lg text-gray-700">
@@ -84,23 +114,20 @@
         <div class="bg-white py-12 mt-10">
             <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                 <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
-                    <h3 class="text-xl font-semibold mb-2">Mudah Digunakan</h3>
-                    <p class="text-gray-600">Interface yang sederhana dan cepat dipahami.</p>
+                    <h3 class="text-xl font-semibold mb-2">Aplikasi web Ujian Online</h3>
+                    <p class="text-gray-600">Aplikasi ini digunakan untuk mengukur kemampuan peserta dalam ujian online.
+                    </p>
                 </div>
                 <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
                     <h3 class="text-xl font-semibold mb-2">Aman & Terpercaya</h3>
                     <p class="text-gray-600">Data ujian dan peserta aman tersimpan di server.</p>
                 </div>
                 <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
-                    <h3 class="text-xl font-semibold mb-2">Hasil Cepat</h3>
-                    <p class="text-gray-600">Laporan hasil ujian bisa langsung diunduh.</p>
+                    <h3 class="text-xl font-semibold mb-2">Trouble</h3>
+                    <p class="text-gray-600">Jika ada error atau trouble pada plikasi silahkan hubungi kami di no wa
+                        082341436666.</p>
                 </div>
             </div>
         </div>
-
-        {{-- <!-- Footer -->
-        <footer class="mt-auto bg-gray-200 py-4 text-center text-gray-600 text-sm">
-            &copy; {{ date('Y') }} Ujian Online. Programmer by <b>Mando Ubuntu</b>.
-        </footer> --}}
     </div>
 </x-app-layout>

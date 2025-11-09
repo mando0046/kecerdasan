@@ -20,9 +20,11 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 $user = Auth::user();
 
-                // arahkan sesuai role
+                // 🔐 Arahkan sesuai role
                 if ($user->role === 'admin') {
                     return redirect()->route('admin.dashboard');
+                } elseif ($user->role === 'operator') {
+                    return redirect()->route('operator.dashboard');
                 } elseif ($user->role === 'peserta') {
                     return redirect()->route('peserta.index');
                 } else {

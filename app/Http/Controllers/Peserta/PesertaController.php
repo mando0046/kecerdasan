@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\Exam;
 use App\Models\Question;
 use App\Models\Answer;
 use App\Models\ExamAttempt;
@@ -20,7 +21,7 @@ class PesertaController extends Controller
     }
 
     // ================== 🏠 Dashboard Peserta ==================
- public function index()
+    public function index()
     {
         $user = Auth::user();
 
@@ -28,14 +29,13 @@ class PesertaController extends Controller
         $examCount = ExamAttempt::where('user_id', $user->id)->count();
 
         // Batas maksimal ujian
-        $maxAttempts = 3; // ganti sesuai kebutuhan (misal 3x percobaan)
+        $maxAttempts = 3; // ganti sesuai kebutuhan
 
-        // Sudah ujian atau belum (misal kalau ada minimal 1 attempt selesai)
+        // Sudah pernah ujian?
         $hasTakenExam = ExamAttempt::where('user_id', $user->id)
             ->where('finished', true)
             ->exists();
 
-        // Kirim semua variabel ke view
         return view('peserta.dashboard', compact(
             'examCount',
             'maxAttempts',
@@ -43,33 +43,59 @@ class PesertaController extends Controller
         ));
     }
 
-
     // ================== 🧩 Halaman Ujian ==================
-    public function ujian()
+    public function ujian(Request $request)
     {
         $userId = Auth::id();
-        $attempts = ExamAttempt::where('user_id', $userId)->count();
 
-        if ($attempts >= 5) {
+        // Ambil semua ujian aktif
+        $exams = Exam::where('is_active', true)->get();
+        $examId = $request->get('exam_id');
+        $selectedExam = null;
+        $questions = collect();
+
+        // Jika peserta sudah mencapai batas attempt
+        $attempts = ExamAttempt::where('user_id', $userId)->count();
+        if ($attempts >= 3) {
             return redirect()->route('peserta.dashboard')
                 ->with('error', 'Anda sudah mencapai batas maksimal 5 kali ujian.');
         }
 
-        $attempt = ExamAttempt::create([
-            'user_id'        => $userId,
-            'attempt_number' => $attempts + 1,
-            'finished'       => false,
-        ]);
+        // Jika peserta memilih ujian tertentu
+        if ($examId) {
+            $selectedExam = Exam::find($examId);
+            if (!$selectedExam) {
+                return redirect()->route('peserta.ujian')->with('error', 'Ujian tidak ditemukan.');
+            }
 
-        $duration = 60; // menit
-        return view('peserta.ujian', compact('duration', 'attempt'));
+            // Buat record attempt baru
+            $attempt = ExamAttempt::create([
+                'user_id'        => $userId,
+                'exam_id'        => $examId,
+                'total_questions'=> $selectedExam->total_questions ?? 0,
+                'correct_answer' => 0,
+                'wrong_answer'   => 0,
+                'score'          => 0,
+                'started_at'     => now(),
+                'finished_at'    => null,
+            ]);
+
+            // Ambil semua soal dari ujian terpilih
+            $questions = Question::where('exam_id', $examId)->get();
+        }
+
+        $duration = $selectedExam->duration ?? 60;
+
+        return view('peserta.ujian', compact('exams', 'questions', 'selectedExam', 'duration'));
     }
 
     // ================== 🔁 Load Soal (AJAX) ==================
     public function showAjax(Request $request)
     {
         $index = (int) $request->query('index', 0);
-        $soal = Question::skip($index)->take(1)->first();
+        $examId = (int) $request->query('exam_id', 0);
+
+        $soal = Question::where('exam_id', $examId)->skip($index)->take(1)->first();
 
         if (!$soal) {
             return response("<div class='text-red-600 font-bold'>Soal tidak ditemukan.</div>", 404);
@@ -82,20 +108,29 @@ class PesertaController extends Controller
     public function saveAnswer(Request $request)
     {
         $request->validate([
-            'answers' => 'required|array',
+            'question_id' => 'required|integer',
+            'answer' => 'required|string',
         ]);
 
-        foreach ($request->answers as $questionId => $answerText) {
-            Answer::updateOrCreate(
-                [
-                    'user_id' => Auth::id(),
-                    'question_id' => $questionId,
-                ],
-                [
-                    'answer' => strtolower(trim($answerText)),
-                ]
-            );
+        $userId = Auth::id();
+        $question = Question::find($request->question_id);
+
+        if (!$question) {
+            return response()->json(['status' => 'error', 'message' => 'Soal tidak ditemukan.']);
         }
+
+        $isCorrect = strtolower(trim($request->answer)) === strtolower(trim($question->answer)) ? 1 : 0;
+
+        Answer::updateOrCreate(
+            [
+                'user_id' => $userId,
+                'question_id' => $question->id,
+            ],
+            [
+                'answer' => strtolower(trim($request->answer)),
+                'is_correct' => $isCorrect,
+            ]
+        );
 
         return response()->json(['status' => 'ok']);
     }
@@ -104,18 +139,33 @@ class PesertaController extends Controller
     public function submit(Request $request)
     {
         $userId = Auth::id();
-
         $attempt = ExamAttempt::where('user_id', $userId)->latest()->first();
 
-        if ($attempt) {
-            $attempt->update(['finished' => true]);
+        if (!$attempt) {
+            return response()->json(['status' => 'error', 'message' => 'Attempt tidak ditemukan.']);
         }
+
+        $answers = Answer::where('user_id', $userId)
+            ->whereIn('question_id', Question::where('exam_id', $attempt->exam_id)->pluck('id'))
+            ->get();
+
+        $total = $answers->count();
+        $benar = $answers->where('is_correct', 1)->count();
+        $salah = $total - $benar;
+        $score = $total > 0 ? round(($benar / $total) * 100, 2) : 0;
+
+        $attempt->update([
+            'correct_answer' => $benar,
+            'wrong_answer'   => $salah,
+            'score'          => $score,
+            'finished_at'    => now(),
+            'updated_at'     => now(),
+        ]);
 
         return response()->json([
             'status'  => 'ok',
             'message' => 'Ujian berhasil disubmit!',
-            'user_id' => $userId,
-            'attempt' => $attempt->attempt_number ?? null,
+            'score'   => $score,
         ]);
     }
 
@@ -124,29 +174,31 @@ class PesertaController extends Controller
     {
         $user = Auth::user();
 
+        $attempt = ExamAttempt::where('user_id', $user->id)->latest()->first();
+
+        if (!$attempt) {
+            return redirect()->route('peserta.dashboard')->with('error', 'Belum ada hasil ujian.');
+        }
+
         $answers = Answer::with('question')
             ->where('user_id', $user->id)
+            ->whereIn('question_id', Question::where('exam_id', $attempt->exam_id)->pluck('id'))
             ->get();
 
-        $totalSoal = Question::count();
-        $benar = $answers->filter(fn($ans) =>
-            $ans->question && strtolower($ans->answer) === strtolower($ans->question->answer)
-        )->count();
-
-        $salah = $answers->count() - $benar;
-        $belumDijawab = $totalSoal - $answers->count();
+        $totalSoal = $answers->count();
+        $benar = $answers->where('is_correct', 1)->count();
+        $salah = $totalSoal - $benar;
+        $belumDijawab = Question::where('exam_id', $attempt->exam_id)->count() - $answers->count();
         $nilaiAkhir = $totalSoal > 0 ? round(($benar / $totalSoal) * 100, 2) : 0;
-        $skor = $benar * 2;
 
         return view('peserta.hasil', compact(
             'user',
             'answers',
-            'totalSoal',
+            'attempt',
             'benar',
             'salah',
             'belumDijawab',
-            'nilaiAkhir',
-            'skor'
+            'nilaiAkhir'
         ));
     }
 }

@@ -37,6 +37,27 @@
                 </li>
                 </ul>
 
+                {{-- Untuk Operator --}}
+                @if (Auth::user()->role === 'operator')
+                    <h3 class="text-lg font-bold mb-4">Halo {{ Auth::user()->name }} 👋</h3>
+                    <p class="mb-4">Selamat datang di Ujian Online. Silakan pilih menu:</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li>
+                            <a href="{{ route('operator.soal.index') }}"
+                                class="px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-500 transition">
+                                ✏️ Kelola Soal
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('operator.peserta.index') }}"
+                                class="px-6 py-3 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-500 transition">
+                                👥 Kelola Guest & Peserta
+                            </a>
+                        </li>
+
+                    </ul>
+                @endif
+
 
                 {{-- Untuk Peserta --}}
                 @if (Auth::user()->role === 'peserta')

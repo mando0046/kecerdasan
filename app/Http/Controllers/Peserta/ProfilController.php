@@ -19,14 +19,12 @@ class ProfilController extends Controller
     {
         $user = Auth::user();
 
-        // Validasi input
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|min:6|confirmed'
         ]);
 
-        // Update data
         $user->name = $request->name;
         $user->email = $request->email;
 
@@ -36,6 +34,6 @@ class ProfilController extends Controller
 
         $user->save();
 
-        return back()->with('success', 'Profil berhasil diperbarui!');
+        return redirect()->route('peserta.dashboard')->with('success', 'Profil berhasil diperbarui!');
     }
 }

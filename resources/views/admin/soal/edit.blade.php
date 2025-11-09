@@ -1,15 +1,33 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="text-xl font-semibold">
-            ✏️ Edit Soal
+            {{ isset($soal) ? '✏️ Edit Soal' : '➕ Edit Soal Baru' }}
         </h2>
     </x-slot>
 
     <div class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md space-y-6">
-        <form action="{{ route('admin.soal.update', $soal->id) }}" method="POST" enctype="multipart/form-data"
-            class="space-y-6">
+        <form action="{{ isset($soal) ? route('admin.soal.update', $soal->id) : route('admin.soal.store') }}"
+            method="POST" enctype="multipart/form-data" class="space-y-6">
+
             @csrf
-            @method('PUT')
+            @if (isset($soal))
+                @method('PUT')
+            @endif
+
+            <!-- 📘 Pilih Ujian -->
+            <div>
+                <label for="exam_id" class="block font-semibold mb-1">Pilih Jenis Ujian</label>
+                <select name="exam_id" id="exam_id" class="w-full border p-2 rounded focus:ring focus:ring-blue-300"
+                    required>
+                    <option value="">-- Pilih Ujian --</option>
+                    @foreach ($exams as $exam)
+                        <option value="{{ $exam->id }}"
+                            {{ old('exam_id', $soal->exam_id ?? '') == $exam->id ? 'selected' : '' }}>
+                            {{ $exam->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
             <!-- 📝 Pertanyaan -->
             <div>
@@ -28,11 +46,11 @@
                 <img id="preview-image" class="hidden h-32 mt-2 rounded border shadow-sm" alt="Preview Gambar Baru">
 
                 <!-- ✅ Gambar lama -->
-                @if ($soal->question_image && file_exists(public_path('storage/' . $soal->question_image)))
+                @if ($soal->question_image)
                     <div class="mt-3">
                         <p class="text-sm text-gray-600">🖼️ Gambar pertanyaan saat ini:</p>
-                        <img src="{{ asset('storage/' . $soal->question_image) }}" alt="Gambar Soal Lama"
-                            class="h-32 rounded border shadow-md mt-1">
+                        <img src="{{ asset('storage/soal_images/' . basename($soal->question_image)) }}"
+                            alt="Gambar Soal Lama" class="h-32 rounded border shadow-md mt-1">
 
                         <!-- Checkbox hapus gambar lama -->
                         <div class="mt-2">
@@ -47,23 +65,23 @@
 
             <!-- 🧩 Pilihan Jawaban -->
             <div>
-                <label class="block font-semibold mb-2">Jawaban Pilihan</label>
+                <label class="block font-semibold mb-2">Pilihan Jawaban</label>
 
                 @foreach (['a', 'b', 'c', 'd', 'e'] as $opt)
                     @php $imgField = "option_image_$opt"; @endphp
                     <div class="mb-5 border rounded-lg p-4 bg-gray-50">
                         <div class="grid md:grid-cols-2 gap-4">
-                            <!-- Teks Jawaban -->
+                            <!-- 🔤 Teks Jawaban -->
                             <div>
-                                <label class="block font-semibold mb-1">Teks Jawaban {{ strtoupper($opt) }}</label>
+                                <label class="block font-semibold mb-1">Jawaban {{ strtoupper($opt) }}</label>
                                 <input type="text" name="option_{{ $opt }}"
-                                    class="w-full border p-2 rounded focus:ring focus:ring-blue-300"
-                                    value="{{ old('option_' . $opt, $soal->{'option_' . $opt}) }}" required>
+                                    value="{{ old('option_' . $opt, $soal->{'option_' . $opt}) }}"
+                                    class="w-full border p-2 rounded focus:ring focus:ring-blue-300" required>
                             </div>
 
-                            <!-- Gambar Jawaban -->
+                            <!-- 🖼️ Gambar Jawaban -->
                             <div>
-                                <label class="block font-semibold mb-1">Gambar Jawaban {{ strtoupper($opt) }}
+                                <label class="block font-semibold mb-1">Gambar {{ strtoupper($opt) }}
                                     (JPEG/JPG)
                                 </label>
                                 <input type="file" name="option_image_{{ $opt }}" accept=".jpeg,.jpg"
@@ -71,14 +89,16 @@
                                     onchange="previewImage(event, 'preview-{{ $opt }}')">
 
                                 <!-- Preview gambar baru -->
-                                <img id="preview-{{ $opt }}" class="hidden h-24 mt-2 rounded border shadow-sm">
+                                <img id="preview-{{ $opt }}"
+                                    class="hidden h-24 mt-2 rounded border shadow-sm">
 
-                                <!-- Gambar lama -->
-                                @if ($soal->$imgField && file_exists(public_path('storage/' . $soal->$imgField)))
+                                <!-- ✅ Gambar lama -->
+                                @if ($soal->$imgField)
                                     <div class="mt-2">
-                                        <p class="text-sm text-gray-600">📷 Gambar jawaban {{ strtoupper($opt) }} saat
-                                            ini:</p>
-                                        <img src="{{ asset('storage/' . $soal->$imgField) }}"
+                                        <p class="text-sm text-gray-600">
+                                            📷 Gambar jawaban {{ strtoupper($opt) }} saat ini:
+                                        </p>
+                                        <img src="{{ asset('storage/soal_images/' . basename($soal->$imgField)) }}"
                                             alt="Opsi {{ strtoupper($opt) }}"
                                             class="h-24 rounded border shadow-md mt-1">
 
@@ -104,7 +124,6 @@
                 <label for="answer" class="block font-semibold mb-1">Kunci Jawaban</label>
                 <select name="answer" id="answer" class="w-full border p-2 rounded focus:ring focus:ring-blue-300"
                     required>
-                    <option value="">-- Pilih Jawaban Benar --</option>
                     @foreach (['a', 'b', 'c', 'd', 'e'] as $opt)
                         <option value="{{ $opt }}"
                             {{ old('answer', $soal->answer) == $opt ? 'selected' : '' }}>
@@ -114,7 +133,7 @@
                 </select>
             </div>
 
-            <!-- Tombol -->
+            <!-- 🔘 Tombol -->
             <div class="flex justify-end items-center gap-3 pt-4 border-t">
                 <a href="{{ route('admin.soal.index') }}"
                     class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
@@ -127,7 +146,7 @@
         </form>
     </div>
 
-    <!-- 🔹 Preview Gambar Baru -->
+    <!-- 🧠 Preview Gambar Baru -->
     <script>
         function previewImage(event, previewId) {
             const input = event.target;

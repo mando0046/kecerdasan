@@ -2,10 +2,9 @@
     <div
         class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-indigo-200 to-purple-200 py-10 px-4">
         <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-8 text-center">
+
             <!-- Judul -->
-            <h2 class="text-3xl font-bold mb-6 text-gray-800">
-                🎓 Hasil Ujian Kamu
-            </h2>
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">🎓 Hasil Ujian Kamu</h2>
 
             <!-- Identitas -->
             <div class="mb-8">
@@ -19,7 +18,9 @@
             <div class="space-y-4 text-lg">
                 <div class="flex justify-between text-gray-700">
                     <span>Total Soal:</span>
-                    <span class="font-semibold">{{ $total_questions ?? 0 }}</span>
+                    <span class="font-semibold">
+                        {{ $exam->total_questions ?? ($total_questions ?? 0) }}
+                    </span>
                 </div>
                 <div class="flex justify-between text-green-600">
                     <span>Jawaban Benar:</span>
@@ -29,17 +30,12 @@
                     <span>Jawaban Salah:</span>
                     <span class="font-semibold">{{ $wrong_answers ?? 0 }}</span>
                 </div>
-                <div class="flex justify-between text-yellow-600">
-                    <span>Belum Dijawab:</span>
-                    <span class="font-semibold">{{ $unanswered ?? 0 }}</span>
-                </div>
             </div>
 
             <!-- Nilai Akhir -->
             <div class="mt-8">
                 <h3 class="text-xl font-semibold mb-2 text-gray-800">Nilai Akhir</h3>
 
-                <!-- Progress bar -->
                 <div class="w-full bg-gray-200 rounded-full h-6 overflow-hidden shadow-inner">
                     <div id="progress-bar"
                         class="h-6 rounded-full transition-all duration-1000 ease-out
@@ -51,7 +47,6 @@
                     </div>
                 </div>
 
-                <!-- Nilai angka -->
                 <p
                     class="text-4xl font-extrabold mt-4
                     @if (($score ?? 0) >= 81) text-green-600
@@ -61,52 +56,82 @@
                     {{ $score ?? 0 }} / 100
                 </p>
 
-                <!-- Pesan motivasi -->
                 <p class="mt-3 text-gray-700 italic text-lg">
                     @if (($score ?? 0) >= 81)
                         🎉 Hebat! Nilaimu <strong>Sangat Bagus!</strong>
                     @elseif(($score ?? 0) >= 75)
-                        🎉 Nilaimu sudah <strong>Bagus</strong>, tingkatkan lagi ya!
+                        🌟 Nilaimu <strong>Bagus</strong>, tingkatkan lagi ya!
                     @elseif(($score ?? 0) >= 61)
-                        🎉 Nilaimu <strong>Cukup</strong> namun harus ditingkatkan lagi!
+                        👍 Nilaimu <strong>Cukup</strong>, terus berlatih!
                     @else
-                        🎉 Nilaimu <strong>Kurang</strong>. Ayo semangat 💪! Jangan menyerah, belajar dan belajar lagi —
-                        pasti bisa!
+                        💪 Nilaimu <strong>Kurang</strong>. Jangan menyerah — kamu pasti bisa!
                     @endif
                 </p>
             </div>
 
             <!-- Tombol Aksi -->
             <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+                <a href="{{ route('peserta.hasil.cetak') }}"
+                    class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold shadow transition">
+                    🖨️ Cetak ke PDF
+                </a>
+
                 <a href="{{ route('peserta.dashboard') }}"
                     class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold shadow transition">
                     ⬅️ Kembali ke Dashboard
                 </a>
-                <a href="{{ route('peserta.ujian.index') }}"
-                    class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold shadow transition">
-                    🔁 Ulangi Ujian
-                </a>
             </div>
+
+            <!-- Riwayat Ujian -->
+            @if (isset($examAttempts) && count($examAttempts) > 0)
+                <div class="mt-12">
+                    <h3 class="text-2xl font-semibold mb-4 text-gray-800">📜 Riwayat Ujian Kamu</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-indigo-100 text-gray-700">
+                                    <th class="p-2 border">#</th>
+                                    <th class="p-2 border">Ujian</th>
+                                    <th class="p-2 border text-center">Benar</th>
+                                    <th class="p-2 border text-center">Total</th>
+                                    <th class="p-2 border text-center">Nilai</th>
+                                    <th class="p-2 border text-center">Tanggal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($examAttempts as $hasil)
+                                    <tr class="hover:bg-gray-50">
+                                        <td class="p-2 border text-center">{{ $loop->iteration }}</td>
+                                        <td class="p-2 border">{{ $hasil->exam->name ?? 'Ujian Tidak Diketahui' }}</td>
+                                        <td class="p-2 border text-center text-green-600">{{ $hasil->correct_answers }}
+                                        </td>
+                                        <td class="p-2 border text-center">{{ $hasil->total_questions }}</td>
+                                        <td class="p-2 border text-center font-bold">{{ $hasil->score_percentage }}%
+                                        </td>
+                                        <td class="p-2 border text-center">
+                                            {{ $hasil->created_at->format('d M Y H:i') }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 
-    <!-- Script animasi dan confetti -->
+    <!-- Script Animasi -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const score = {{ $score ?? 0 }};
             const progress = document.getElementById('progress-bar');
             const finalWidth = Math.min(score, 100) + '%';
+            setTimeout(() => progress.style.width = finalWidth, 300);
 
-            // Animasi bar nilai
-            setTimeout(() => {
-                progress.style.width = finalWidth;
-            }, 300);
-
-            // 🎉 Confetti untuk nilai >= 81
             if (score >= 81) {
                 const duration = 2500;
-                const animationEnd = Date.now() + duration;
+                const end = Date.now() + duration;
                 const defaults = {
                     startVelocity: 25,
                     spread: 360,
@@ -114,20 +139,15 @@
                     zIndex: 9999
                 };
 
-                function randomInRange(min, max) {
-                    return Math.random() * (max - min) + min;
-                }
-
                 const interval = setInterval(() => {
-                    const timeLeft = animationEnd - Date.now();
+                    const timeLeft = end - Date.now();
                     if (timeLeft <= 0) return clearInterval(interval);
-
                     const particleCount = 50 * (timeLeft / duration);
                     confetti({
                         ...defaults,
                         particleCount,
                         origin: {
-                            x: randomInRange(0.1, 0.9),
+                            x: Math.random(),
                             y: Math.random() - 0.2
                         }
                     });

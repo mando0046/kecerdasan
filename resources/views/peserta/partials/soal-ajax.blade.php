@@ -1,5 +1,6 @@
 @if ($question)
     <div class="bg-white p-5 sm:p-6 lg:p-8 rounded-2xl shadow w-full max-w-5xl mx-auto" data-qid="{{ $question->id }}">
+        {{-- Judul Soal --}}
         <h4 class="font-bold mb-4 text-lg sm:text-xl text-gray-800">
             Soal {{ $index + 1 }}
         </h4>
@@ -35,7 +36,7 @@
                                 : 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-blue-50' }}"
                         data-question-id="{{ $question->id }}" data-option="{{ strtolower($opt) }}">
                         <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-                            {{-- Huruf & teks --}}
+                            {{-- Huruf & Teks --}}
                             @if ($optionText)
                                 <span class="text-base sm:text-lg leading-snug flex-1">
                                     <strong>{{ strtoupper($opt) }}.</strong> {{ $optionText }}

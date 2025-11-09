@@ -57,7 +57,8 @@
                         <!-- Gambar Jawaban -->
                         <div>
                             <label class="block font-semibold mb-1">Gambar Jawaban {{ strtoupper($opt) }}
-                                (JPEG/JPG)</label>
+                                (JPEG/JPG)
+                            </label>
                             <input type="file" name="option_image_{{ $opt }}" accept=".jpeg,.jpg"
                                 class="w-full border p-2 rounded"
                                 onchange="previewImage(event, 'preview-{{ $opt }}')">

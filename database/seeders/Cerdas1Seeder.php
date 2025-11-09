@@ -6,18 +6,39 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
-class QuestionSeeder extends Seeder
+class Cerdas1Seeder extends Seeder
 {
-    /**
-     * Jalankan seeder untuk tabel questions.
-     */
     public function run(): void
     {
         $now = Carbon::now();
 
-        $questions = [
+        // 🧹 Kosongkan tabel sebelum isi ulang
+        DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        DB::table('questions');
+        DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+
+        /**
+         * 📘 Daftar ujian dan jumlah soal per exam
+         */
+        $exams = [
+            1 => ['name' => 'Simulasi Tes Kecerdasan-1', 'total' => 50],
+        ];
+
+        $questions = [];
+
+        foreach ($exams as $examId => $examData) {
+            $total = $examData['total'];
+
+            switch ($examId) {
+                // 🧠 Simulasi Cerdas 1
+                case 1:
+                    $questions = array_merge($questions, [
+                        // --- No 1 ------
+                        // --- No 1  ------
             // --- No 1  ------
             [
+
+               
                 'question' => 'Mobil : Bensin = Pelari : … ',
                 'option_a' => 'sepatu',
                 'option_b' => 'makanan',
@@ -28,6 +49,7 @@ class QuestionSeeder extends Seeder
             ],
             // --- No 2  ------
             [
+                
                 'question' => 'Buku : Penulis = Lagu : ...',
                 'option_a' => 'penyanyi',
                 'option_b' => 'komposer',
@@ -38,6 +60,7 @@ class QuestionSeeder extends Seeder
             ],
             // --- No 3  ------
             [
+               
                 'question' => 'Kamera : Foto = Oven : ...',
                 'option_a' => 'Roti',
                 'option_b' => 'Memasak',
@@ -48,6 +71,7 @@ class QuestionSeeder extends Seeder
             ],
             // --- No 4  ------
             [
+               
                 'question' => 'Jika 2x + 5 = 15, maka nilai x adalah ...',
                 'option_a' => '5',
                 'option_b' => '9',
@@ -58,6 +82,7 @@ class QuestionSeeder extends Seeder
             ],
             // --- No 5  ------
             [
+               
                 'question' => 'Berapakah 25% dari 200? ...',
                 'option_a' => '25',
                 'option_b' => '50',
@@ -68,6 +93,7 @@ class QuestionSeeder extends Seeder
             ],
             // --- No 6  ------
             [
+               
                 'question' => 'Jika 3 orang dapat menyelesaikan pekerjaan dalam 6 hari, berapa hari yang dibutuhkan 6 orang untuk menyelesaikan pekerjaan yang sama? ...',
                 'option_a' => '5',
                 'option_b' => '4',
@@ -78,6 +104,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 7  ------
             [
+            
                 'question' => 'Hasil dari 7² + 8 × 3 adalah  ...',
                 'option_a' => '60',
                 'option_b' => '73',
@@ -88,6 +115,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 8  ------
             [
+                
                 'question' => '2, 4, 6, 8,  ...',
                 'option_a' => '9',
                 'option_b' => '10',
@@ -98,6 +126,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 9  ------
             [
+                
                 'question' => '3, 6, 9, 12, ...',
                 'option_a' => '15',
                 'option_b' => '18',
@@ -108,6 +137,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 10  ------
             [
+                
                 'question' => '5, 10, 20, 40,  ...',
                 'option_a' => '50',
                 'option_b' => '60',
@@ -117,6 +147,7 @@ class QuestionSeeder extends Seeder
                 'answer' => 'E',
             ], // --- No 11  ------
             [
+                
                 'question' => '1, 4, 9, 16, ...',
                 'option_a' => '20',
                 'option_b' => '25',
@@ -127,16 +158,18 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 12  ------
             [
+                
                 'question' => 'Jika A = 5, B = 10, dan C = 15, maka A + B – C = ...',
                 'option_a' => '20',
                 'option_b' => '15',
                 'option_c' => '10',
                 'option_d' => '5',
-                'option_e' => '0',
+                'option_e' => 0,
                 'answer' => 'E',
             ],
 			 // --- No 13  ------
             [
+                
                 'question' => 'Jika 4x = 20, maka x = ...',
                 'option_a' => '4',
                 'option_b' => '5',
@@ -147,6 +180,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 14  ------
             [
+                
                 'question' => 'Jika 3y – 7 = 8, maka y = ...',
                 'option_a' => '3',
                 'option_b' => '5',
@@ -157,6 +191,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 15  ------
             [
+                
                 'question' => 'Jika 2a + 3b = 16 dan a = 2, maka b = ...',
                 'option_a' => '2',
                 'option_b' => '3',
@@ -167,6 +202,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 16  ------
             [
+                
                 'question' => ' Semua kucing adalah hewan. Beberapa hewan adalah mamalia. Kesimpulan yang tepat adalah',
                 'option_a' => 'Semua kucing adalah mamalia. ',
                 'option_b' => 'Beberapa kucing adalah mamalia. ',
@@ -177,6 +213,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 17  ------
             [
+                
                 'question' => 'Jika hari ini adalah Senin, maka 3 hari yang lalu adalah ...',
                 'option_a' => 'kamis',
                 'option_b' => 'jumat',
@@ -187,6 +224,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 18  ------
             [
+                
                 'question' => 'Jarak kota Cirebon ke Kuningan 35 km dan terlihat pada peta 35cm, berarti peta tersebut berskala:...',
                 'option_a' => '1: 350.000',
                 'option_b' => '1:700.000',
@@ -197,6 +235,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 19  ------
             [
+                
                 'question' => 'Jika semua siswa rajin belajar, maka mereka akan lulus ujian. Andi lulus ujian. Kesimpulan yang tepat adalah ...',
                 'option_a' => 'Andi rajin belajar. ',
                 'option_b' => 'Andi tidak rajin belajar. ',
@@ -207,6 +246,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 20  ------
             [
+                
                 'question' => 'Jika A > B dan B > C, maka ...',
                 'option_a' => 'A > C',
                 'option_b' => 'A < C',
@@ -217,6 +257,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 21  ------
             [
+                
                 'question' => 'Hasil dari 125 ÷ 5 adalah ...',
                 'option_a' => '20',
                 'option_b' => '25',
@@ -227,6 +268,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 22  ------
             [
+                
                 'question' => 'Jika 5 buku harganya Rp100.000, maka harga 8 buku adalah ...',
                 'option_a' => 'Rp. 100.0000',
                 'option_b' => 'Rp 120.000',
@@ -237,6 +279,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 23  ------
             [
+                
                 'question' => 'Manakah kata yang tidak sesuai dengan yang lain? ...',
                 'option_a' => 'Meja',
                 'option_b' => 'kursi',
@@ -247,6 +290,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 24  ------
             [
+                
                 'question' => '5, 7, 11, 13, 17, 19, 23, ...',
                 'option_a' => '25 , 27',
                 'option_b' => '25 , 28',
@@ -257,6 +301,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 25  ------
             [
+                
                 'question' => 'Jika semua A adalah B, dan sebagian B adalah C, maka: ...',
                 'option_a' => 'semua A adalah C',
                 'option_b' => 'sebagian A adalah C',
@@ -267,6 +312,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 26  ------
             [
+                
                 'question' => 'Satu mobil menempuh perjalanan 120 km dalam 2 jam. Jika kecepatannya tetap, berapa jarak yang ditempuh dalam 5 jam? ...',
                 'option_a' => '200 Km',
                 'option_b' => '250 Km',
@@ -277,6 +323,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 27  ------
             [
+                
                 'question' => '3/4 + 1/2 = ...',
                 'option_a' => '8/4',
                 'option_b' => '5/4',
@@ -287,6 +334,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 28  ------
             [
+                
                 'question' => 'Suatu kereta melaju dengan kecepatan 60 km/jam. Berapa waktu yang diperlukan untuk menempuh jarak 180 km? ...',
                 'option_a' => '2 Jam',
                 'option_b' => '3 jam',
@@ -297,6 +345,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 29  ------
             [
+                
                 'question' => 'Merdeka = ...',
                 'option_a' => 'pesta',
                 'option_b' => 'meluas',
@@ -307,6 +356,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 30  ------
             [
+                
                 'question' => 'Taraf = ...',
                 'option_a' => 'jejak',
                 'option_b' => 'cacat',
@@ -317,6 +367,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 31  ------
             [
+                
                 'question' => 'Emas : Tambang || …… : .….',
                 'option_a' => 'garam : logam',
                 'option_b' => 'permata : perhiasan',
@@ -327,6 +378,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 32  ------
             [
+                
                 'question' => 'Motor : Roda || …. ; ….',
                 'option_a' => 'Rumah : fondasi',
                 'option_b' => 'Rumah : pintu',
@@ -337,6 +389,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 33  ------
             [
+                
                 'question' => 'Jarak antara kota X-Y adalah 360 km. Jika ditempuh dengan motor dengan kecepatan 90 km/jam, maka berapa lama perjalanan ditempuh? ...',
                 'option_a' => '200 menit',
                 'option_b' => '230 menit',
@@ -347,6 +400,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 34  ------
             [
+                
                 'question' => 'Perbandingan uang jajan Abay dan uang jajan Fajri adalah 3:2. Jika uang Abay dan Fajri berjumlah Rp 150.000, berapakah masing-masing uang Abay dan Fajri? ...',
                 'option_a' => 'Rp 80.000 dan Rp 60.000',
                 'option_b' => 'Rp 90.000 dan Rp 60.000',
@@ -357,6 +411,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 35  ------
             [
+                
                 'question' => 'Nilai tempat angka 7 pada bilangan 7.582 adalah ...',
                 'option_a' => 'ratusan',
                 'option_b' => 'ribuan',
@@ -367,6 +422,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 36  ------
             [
+                
                 'question' => '4 3 8 6 16 12 ...',
                 'option_a' => '32',
                 'option_b' => '47',
@@ -377,6 +433,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 37  ------
             [
+                
                 'question' => 'Pilih jawaban yang benar',
                 'option_a' => 'reporter',
                 'option_b' => 'jurnalis',
@@ -387,6 +444,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 38  ------
             [
+                
                 'question' => 'A, C, E, G, ..., ....',
                 'option_a' => 'I , K',
                 'option_b' => 'J , K',
@@ -397,6 +455,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 39  ------
             [
+                
                 'question' => 'Semua polisi berbadan tegap. Sebagian polisi adalah polisi lalu lintas. Jadi:….?',
                 'option_a' => 'Sebagian polisi lalu lintas berbadan tegap',
                 'option_b' => 'Semua polisi pasti polisi lalu lintas',
@@ -407,6 +466,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 40  ------
             [
+                
                 'question' => 'Jarak kota Bungah dan Meranti adalah 280 km. Apabila ditempuh dengan kecepatan 40 km/ jam, maka waktu perjalanan yang ditempuh adalah? ...',
                 'option_a' => '420 menit',
                 'option_b' => '450 menit',
@@ -417,6 +477,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 41  ------
             [
+                
                 'question' => 'Diana menyimpan uang di bank dan mendapatkan bunga sebesar 20% setiap tahunnya. Apabila uang tabungan Diana berjumlah Rp 150.000, maka setelah 1 tahun menabung di bank tersebut total uang tabungan Diana menjadi? ...',
                 'option_a' => 'Rp 185.000',
                 'option_b' => 'Rp 180.000',
@@ -427,6 +488,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 42  ------
             [
+                
                 'question' => 'Tangkas >< ...',
                 'option_a' => 'rajin',
                 'option_b' => 'cepat',
@@ -437,6 +499,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 43  ------
             [
+                
                 'question' => '2, 4, 7, 11, 16, ..., ....',
                 'option_a' => '17, 18',
                 'option_b' => '20, 22',
@@ -447,6 +510,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 44  ------
             [
+                
                 'question' => '5, 7, 11, 19, 35, ..., ...',
                 'option_a' => '67, 131',
                 'option_b' => '45, 120',
@@ -457,6 +521,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 45  ------
             [
+                
                 'question' => '1, 3, 7, 13, 21,  ..., ...',
                 'option_a' => '25',
                 'option_b' => '28',
@@ -467,6 +532,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 46  ------
             [
+                
                 'question' => 'Pulau Komodo terletak di provinsi? ...',
                 'option_a' => 'Bali',
                 'option_b' => 'NTT',
@@ -477,6 +543,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 47  ------
             [
+                
                 'question' => 'Presiden RI yang dipilih oleh rakyat langsung pertama kali adalah ...',
                 'option_a' => 'Soekarno',
                 'option_b' => 'BJ Habibi',
@@ -487,6 +554,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 48  ------
             [
+                
                 'question' => 'Pemilu keberapa yang pertama kalinya rakyat memilih presiden dan wakil presiden secara langsung ?',
                 'option_a' => '1999',
                 'option_b' => '2004',
@@ -497,6 +565,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 49  ------
             [
+                
                 'question' => ' Pada tanggal berapakah Hari Lahir Pancasila diperingati? ',
                 'option_a' => '1 Juni',
                 'option_b' => '1 Juli',
@@ -507,6 +576,7 @@ class QuestionSeeder extends Seeder
             ],
 			 // --- No 50  ------
             [
+                
                 'question' => 'Apa nama mata uang dari negara Thailand?  ...',
                 'option_a' => 'Won',
                 'option_b' => 'Rupiah',
@@ -515,11 +585,16 @@ class QuestionSeeder extends Seeder
                 'option_e' => 'Bath',
                 'answer' => 'E',
             ]
+			
            
-        ];
+                    ]);
+                    break;
+            }
+        }
 
-        // Tambahkan timestamp created_at & updated_at
+        // Tambahkan exam_id dan timestamp ke semua soal
         foreach ($questions as &$q) {
+            $q['exam_id'] = 1;       // ✅ tambahkan exam_id
             $q['created_at'] = $now;
             $q['updated_at'] = $now;
         }

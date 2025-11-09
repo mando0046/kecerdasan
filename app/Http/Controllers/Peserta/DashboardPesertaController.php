@@ -61,7 +61,7 @@ class DashboardPesertaController extends Controller
 
         // 🔹 Status ujian
         $hasTakenExam = $answers->isNotEmpty() || $examCount > 0;
-        $maxAttempts = 20;
+        $maxAttempts = 5;
 
         // 🔹 Cek permintaan reset ujian pending
         $pendingRequest = ExamResetRequest::where('user_id', $userId)
@@ -81,8 +81,7 @@ class DashboardPesertaController extends Controller
             'pendingRequest' => $pendingRequest,
         ]);
     }
-
-    // ==========================
+// ==========================
     // 📈 HALAMAN HASIL UJIAN
     // ==========================
     public function hasil()
@@ -135,4 +134,7 @@ class DashboardPesertaController extends Controller
 
         return back()->with('success', 'Permintaan ujian ulang berhasil dikirim.');
     }
+
+    
 }
+ 

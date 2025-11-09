@@ -35,6 +35,8 @@
                                 <select name="role" onchange="this.form.submit()" class="border p-1 rounded">
                                     <option value="admin" {{ $user->role === 'admin' ? 'selected' : '' }}>Admin
                                     </option>
+                                    <option value="operator" {{ $user->role === 'operator' ? 'selected' : '' }}>Operator
+                                    </option>
                                     <option value="peserta" {{ $user->role === 'peserta' ? 'selected' : '' }}>Peserta
                                     </option>
                                     <option value="guest" {{ $user->role === 'guest' ? 'selected' : '' }}>Guest

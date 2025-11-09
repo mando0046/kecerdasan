@@ -75,6 +75,8 @@
                     class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring focus:ring-blue-200 transition-all duration-200"
                     required>
                     <option value="admin" {{ old('role', $user->role) === 'admin' ? 'selected' : '' }}>Admin</option>
+                    <option value="peserta" {{ old('role', $user->role) === 'operator' ? 'selected' : '' }}>Operator
+                    </option>
                     <option value="peserta" {{ old('role', $user->role) === 'peserta' ? 'selected' : '' }}>Peserta
                     </option>
                     <option value="guest" {{ old('role', $user->role) === 'guest' ? 'selected' : '' }}>Guest</option>

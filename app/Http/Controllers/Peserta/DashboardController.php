@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Answer;
 use App\Models\ExamResetRequest;
 use App\Models\Question;
+use App\Models\Score;
 use App\Models\Exam;
 
 class DashboardController extends Controller
@@ -22,11 +23,14 @@ class DashboardController extends Controller
         // Cek apakah peserta sudah pernah mengerjakan ujian
         $hasTakenExam = Answer::where('user_id', $userId)->exists();
 
-        // Hitung jumlah jawaban yang sudah disimpan (jumlah soal yang dikerjakan)
-        $examCount = Answer::where('user_id', $userId)->count();
+        // Hitung jumlah percobaan ujian dari tabel Score
+        $examAttempts = Score::where('user_id', $userId)->count();
 
-        // Batas maksimum percobaan ujian (bisa disesuaikan)
-        $maxAttempts = 25;
+        // Batas maksimum percobaan ujian
+        $maxAttempts = 5;
+
+        // Apakah user sudah mencapai batas maksimum?
+        $hasReachedLimit = $examAttempts >= $maxAttempts;
 
         // Cek apakah peserta memiliki permintaan reset yang sudah disetujui admin
         $resetApproved = ExamResetRequest::where('user_id', $userId)
@@ -39,47 +43,37 @@ class DashboardController extends Controller
             $questions = Question::all();
         }
 
-        // Durasi ujian dalam menit
-        $duration = 60;
+        // Ambil exam aktif (misalnya kolom is_active = true)
+        $exam = Exam::where('is_active', true)->first();
+
+        // Durasi ujian (ambil dari exam jika ada)
+        $duration = $exam->duration ?? 60;
 
         return view('peserta.dashboard', compact(
             'hasTakenExam',
-            'examCount',
+            'examAttempts',
             'maxAttempts',
+            'hasReachedLimit',
             'resetApproved',
             'questions',
-            'duration'
+            'duration',
+            'exam' // ✅ kirim ke view agar bisa ditampilkan di blade
         ));
     }
 
     /**
      * 🔹 Kirim permintaan reset ujian oleh peserta.
      */
-    public function requestExamReset(Request $request)
+    public function requestReset(Request $request)
     {
-        $userId = Auth::id();
+        $user = Auth::user();
 
-        // Validasi input alasan (opsional)
-        $request->validate([
-            'reason' => 'nullable|string|max:255',
+        // Simpan alasan pengajuan reset ke database (misalnya di kolom users.reset_reason)
+        $user->update([
+            'reset_requested' => true,
+            'reset_reason' => $request->input('reason', 'Tidak ada alasan'),
         ]);
 
-        // Cegah peserta mengirim permintaan ganda sebelum disetujui
-        $existingRequest = ExamResetRequest::where('user_id', $userId)
-                            ->whereIn('status', ['pending', 'approved'])
-                            ->first();
-
-        if ($existingRequest) {
-            return redirect()->back()->with('error', '❗ Kamu sudah memiliki permintaan reset yang masih aktif.');
-        }
-
-        // Simpan permintaan baru
-        ExamResetRequest::create([
-            'user_id' => $userId,
-            'reason'  => $request->input('reason', 'Permintaan reset ujian'),
-            'status'  => 'pending', // default menunggu persetujuan admin
-        ]);
-
-        return redirect()->back()->with('success', '✅ Permintaan reset ujian berhasil dikirim dan menunggu persetujuan admin.');
+        return back()->with('success', 'Permintaan reset ujian telah dikirim ke admin.');
     }
 }

@@ -12,6 +12,7 @@ class Question extends Model
     protected $table = 'questions';
 
     protected $fillable = [
+        'exam_id',          // relasi ke ujian
         'question',
         'question_image',
         'option_a',
@@ -24,21 +25,40 @@ class Question extends Model
         'option_image_d',
         'option_e',
         'option_image_e',
-        'answer', // <- ini kolom kunci jawaban
+        'answer', // kolom kunci jawaban
     ];
 
+    /**
+     * 🔗 Relasi ke model Exam
+     * Setiap soal dimiliki oleh satu ujian.
+     */
+    public function exam()
+    {
+        return $this->belongsTo(Exam::class);
+    }
+
+    /**
+     * 🔗 Relasi ke model Answer
+     * Satu soal bisa memiliki banyak jawaban user.
+     */
     public function answers()
     {
         return $this->hasMany(Answer::class);
     }
 
-    // Tambahkan accessor agar lebih konsisten
+    /**
+     * 🧩 Accessor agar mudah ambil jawaban benar.
+     */
     public function getCorrectAnswerAttribute()
     {
         return $this->answer;
     }
-  
 
-
+    /**
+     * 🔠 Mutator untuk memastikan kolom answer selalu huruf besar
+     */
+    public function setAnswerAttribute($value)
+    {
+        $this->attributes['answer'] = strtoupper($value);
+    }
 }
-

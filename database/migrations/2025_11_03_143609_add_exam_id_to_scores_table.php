@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('exam_answers', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
+        Schema::table('scores', function (Blueprint $table) {
+    $table->foreignId('exam_id')->nullable()->constrained()->onDelete('cascade');
+});
+
     }
 
     /**
@@ -22,6 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('exam_answers');
+        Schema::table('scores', function (Blueprint $table) {
+            //
+        });
     }
 };

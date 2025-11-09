@@ -4,291 +4,293 @@ namespace App\Http\Controllers\Peserta;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use App\Models\Question;
 use App\Models\Answer;
+use App\Models\Exam;
+use App\Models\ExamAttempt;
 use App\Models\Score;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 
 class UjianController extends Controller
 {
     /**
-     * Halaman awal ujian (termasuk generate soal)
+     * 🏠 Halaman utama ujian — peserta memilih jenis ujian
      */
- public function index()
-{
-    $user = Auth::user();
+    public function index(Request $request)
+    {
+        $exams = Exam::where('is_active', true)->orderBy('id')->get();
 
-    // 🔹 Ambil data sesi ujian
-    $examQuestions = session('exam_questions');
-    $examStartTime = session('exam_start_time');
+        // Ambil exam_id dari parameter atau session
+        $selectedExamId = $request->get('exam_id') ?? session('selected_exam_id');
+        $exam = $selectedExamId ? Exam::find($selectedExamId) : null;
 
-    // 🔹 Durasi ujian (menit)
-    $duration = 30;
+        // Jika belum pilih ujian
+        if (!$exam) {
+            return view('peserta.partials.pilih-ujian', compact('exams'));
+        }
 
-    // 🔹 Jika belum ada sesi ujian, buat baru
-    if (!$examQuestions || !is_array($examQuestions) || count($examQuestions) === 0) {
-        $examQuestions = Question::inRandomOrder()->pluck('id')->toArray();
+        $userId = Auth::id();
 
+        // Cek attempt aktif untuk ujian ini
+        $attempt = ExamAttempt::where('user_id', $userId)
+            ->where('exam_id', $exam->id)
+            ->whereNull('finished_at')
+            ->latest('id')
+            ->first();
+
+        // Buat attempt baru kalau belum ada
+        if (!$attempt) {
+            $attempt = ExamAttempt::create([
+                'user_id' => $userId,
+                'exam_id' => $exam->id,
+                'total_questions' => $exam->total_questions,
+                'correct_answer' => 0,
+                'wrong_answer' => 0,
+                'score' => 0,
+                'started_at' => now(),
+            ]);
+        }
+
+        // Simpan ke session
         session([
-            'exam_questions' => $examQuestions,
-            'exam_start_time' => now(),
-            'answered_questions' => [],
+            'attempt_id' => $attempt->id,
+            'selected_exam_id' => $exam->id,
         ]);
 
-        $examStartTime = now();
+        // Ambil soal berdasarkan exam_id
+        $questionIds = Question::where('exam_id', $exam->id)
+            ->pluck('id')
+            ->toArray();
+
+        // Jika belum ada soal
+        if (empty($questionIds)) {
+            return view('peserta.partials.ujian', [
+                'exam' => $exam,
+                'attempt' => $attempt,
+                'questions' => [],
+                'exams' => $exams,
+                'message' => '⚠️ Soal untuk ujian ini belum tersedia.',
+            ]);
+        }
+
+        // Acak urutan sekali per attempt
+        if (!Session::has("question_order_{$attempt->id}")) {
+            shuffle($questionIds);
+            Session::put("question_order_{$attempt->id}", $questionIds);
+        }
+
+        $orderedIds = Session::get("question_order_{$attempt->id}");
+
+        // Ambil soal sesuai urutan
+        $questions = Question::whereIn('id', $orderedIds)
+            ->orderByRaw('FIELD(id, ' . implode(',', $orderedIds) . ')')
+            ->get();
+
+        // Batasi jumlah soal sesuai total_questions exam
+        if ($questions->count() > $exam->total_questions) {
+            $questions = $questions->take($exam->total_questions);
+        }
+
+        return view('peserta.partials.ujian', compact('exam', 'attempt', 'questions', 'exams'));
     }
 
-    // 🔹 Hitung waktu tersisa dalam detik
-    $elapsed = now()->diffInSeconds($examStartTime);
-    $remainingTime = max(($duration * 60) - $elapsed, 0);
-
-    // 🔹 Ambil soal sesuai urutan di session
-    $questions = Question::whereIn('id', $examQuestions)
-        ->orderByRaw('FIELD(id, ' . implode(',', $examQuestions) . ')')
-        ->get();
-
-    return view('peserta.partials.ujian', [
-        'questions' => $questions,
-        'duration' => $duration,
-        'remainingTime' => $remainingTime,
-    ]);
-}
-
-
+    /**
+     * 🚀 Halaman untuk memilih jenis ujian
+     */
+    public function pilih()
+    {
+        $exams = Exam::where('is_active', true)->get();
+        return view('peserta.partials.pilih-ujian', compact('exams'));
+    }
 
     /**
-     * Menampilkan soal via AJAX berdasarkan index
+     * 🚀 Mulai ujian baru
+     */
+    public function mulaiBaru(Request $request)
+    {
+        $request->validate(['exam_id' => 'required|exists:exams,id']);
+
+        $exam = Exam::find($request->exam_id);
+        $userId = Auth::id();
+
+        // Tutup attempt lama yang belum selesai
+        ExamAttempt::where('user_id', $userId)
+            ->where('exam_id', $exam->id)
+            ->whereNull('finished_at')
+            ->update(['finished_at' => now()]);
+
+        // Buat attempt baru
+        $attempt = ExamAttempt::create([
+            'user_id' => $userId,
+            'exam_id' => $exam->id,
+            'total_questions' => $exam->total_questions,
+            'correct_answer' => 0,
+            'wrong_answer' => 0,
+            'score' => 0,
+            'started_at' => now(),
+        ]);
+
+        session([
+            'attempt_id' => $attempt->id,
+            'selected_exam_id' => $exam->id,
+        ]);
+
+        return redirect()->route('peserta.ujian.index', ['exam_id' => $exam->id])
+            ->with('success', '✅ Ujian baru dimulai. Selamat mengerjakan!');
+    }
+
+    /**
+     * 🔄 Load soal via AJAX
      */
     public function showAjax(Request $request)
     {
         $index = (int) $request->get('index', 0);
-        $questions = session('exam_questions');
+        $examId = $request->get('exam_id') ?? session('selected_exam_id');
+        $attemptId = session('attempt_id');
 
-        // Jika belum ada session, buat ulang
-        if (!$questions || !is_array($questions) || count($questions) === 0) {
-            $questions = Question::inRandomOrder()->pluck('id')->toArray();
-            session(['exam_questions' => $questions]);
-            Log::warning('Session soal kosong, dibuat ulang', ['count' => count($questions)]);
+        if (!$attemptId || !$examId) {
+            return response('<div class="text-red-500">❌ Attempt atau ujian tidak ditemukan</div>', 404);
         }
 
-        // Cek index valid
-        if (!isset($questions[$index])) {
-            return response('<div class="p-4 text-center text-gray-500">❌ Soal tidak ditemukan (index '.$index.').</div>', 404);
+        $orderedIds = Session::get("question_order_{$attemptId}");
+        if (!$orderedIds || !isset($orderedIds[$index])) {
+            return response('<div class="text-gray-500">⚠️ Soal belum tersedia.</div>', 200);
         }
 
-        $questionId = $questions[$index];
-        $question = Question::find($questionId);
+        $questionId = $orderedIds[$index];
+        $question = Question::where('id', $questionId)
+            ->where('exam_id', $examId)
+            ->first();
 
         if (!$question) {
-            return response('<div class="p-4 text-center text-gray-500">❌ Soal tidak ditemukan di database (ID '.$questionId.').</div>', 404);
+            return response('<div class="text-red-500">❌ Soal tidak valid untuk ujian ini</div>', 404);
         }
 
         $answer = Answer::where('user_id', Auth::id())
-            ->where('question_id', $questionId)
+            ->where('question_id', $question->id)
+            ->where('attempt_number', $attemptId)
             ->first();
 
-        // render partial soal
-        return view('peserta.partials.soal-ajax', compact('question', 'answer', 'index'));
+        return view('peserta.partials.soal-ajax', compact('question', 'index', 'answer'));
     }
 
     /**
-     * Menyimpan jawaban sementara
+     * 💾 Simpan jawaban peserta
      */
-  public function saveAnswer(Request $request)
-{
-    try {
-        // Validasi data masuk
-        $data = $request->validate([
+    public function saveAnswer(Request $request)
+    {
+        $request->validate([
             'question_id' => 'required|integer|exists:questions,id',
-            'answer' => 'required|string|max:255',
+            'answer' => 'required|string|max:1',
+            'exam_id' => 'required|exists:exams,id',
         ]);
 
         $user = Auth::user();
+        $attemptId = session('attempt_id');
 
-        // Simpan atau update jawaban
+        if (!$attemptId) {
+            return response()->json(['status' => 'error', 'message' => 'Attempt tidak ditemukan.']);
+        }
+
+        $question = Question::find($request->question_id);
+        if (!$question || $question->exam_id != $request->exam_id) {
+            return response()->json(['status' => 'error', 'message' => 'Soal tidak sesuai dengan ujian.']);
+        }
+
         Answer::updateOrCreate(
             [
                 'user_id' => $user->id,
-                'question_id' => $data['question_id'],
+                'question_id' => $request->question_id,
+                'attempt_number' => $attemptId,
             ],
             [
-                'answer' => strtolower(trim($data['answer'])),
+                'answer' => strtolower($request->answer),
                 'updated_at' => now(),
             ]
         );
 
-        return response()->json([
-            'status' => 'ok',
-            'message' => '✅ Jawaban berhasil disimpan!',
-        ]);
-
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        return response()->json([
-            'status' => 'error',
-            'message' => '❌ Data tidak valid: ' . $e->getMessage(),
-        ], 422);
-
-    } catch (\Exception $e) {
-        \Log::error('Gagal menyimpan jawaban', [
-            'error' => $e->getMessage(),
-            'user_id' => Auth::id(),
-        ]);
-
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Terjadi kesalahan saat menyimpan jawaban.',
-        ], 500);
+        return response()->json(['status' => 'ok']);
     }
-}
-
-
 
     /**
-     * Submit ujian (hitung skor dan simpan)
+     * ✅ Submit ujian dan simpan skor
      */
-public function submit(Request $request)
-{
-    $user = Auth::user();
+    public function submit(Request $request)
+    {
+        $user = Auth::user();
+        $attemptId = session('attempt_id');
 
-    // 🔹 Ambil daftar soal dari session
-    $questionIds = session('exam_questions', []);
+        if (!$attemptId) {
+            return response()->json(['status' => 'error', 'message' => 'Attempt tidak ditemukan.']);
+        }
 
-    // 🔹 Jika session hilang, ambil semua soal dari database
-    $questions = Question::whereIn('id', $questionIds)->get();
-    if ($questions->isEmpty()) {
-        $questions = Question::all();
-    }
+        $examAttempt = ExamAttempt::find($attemptId);
+        if (!$examAttempt) {
+            return response()->json(['status' => 'error', 'message' => 'Data attempt tidak valid.']);
+        }
 
-    $benar = 0;
-    $salah = 0;
-    $kosong = 0;
+        $exam = $examAttempt->exam;
+        $answers = Answer::where('user_id', $user->id)
+            ->where('attempt_number', $attemptId)
+            ->get();
 
-    foreach ($questions as $q) {
-        // 🔹 Ambil jawaban peserta
-        $answer = Answer::where('user_id', $user->id)
-            ->where('question_id', $q->id)
-            ->first();
-
-        if (!$answer) {
-            // Belum dijawab → simpan kosong
-            Answer::create([
-                'user_id' => $user->id,
-                'question_id' => $q->id,
-                'answer' => '',
-            ]);
-            $kosong++;
-        } else {
-            $ans = strtolower(trim($answer->answer ?? ''));
-
-            if ($ans === '') {
-                $kosong++;
-            } elseif ($ans === strtolower(trim($q->correct_answer))) {
-                $benar++;
+        $correct = 0;
+        foreach ($answers as $ans) {
+            $question = Question::find($ans->question_id);
+            if ($question && strtolower($question->answer) === strtolower($ans->answer)) {
+                $correct++;
+                $ans->update(['is_correct' => 1]);
             } else {
-                $salah++;
+                $ans->update(['is_correct' => 0]);
             }
         }
+
+        $total = $examAttempt->total_questions ?: Question::where('exam_id', $exam->id)->count();
+        $wrong = $total - $correct;
+        $score = $total > 0 ? round(($correct / $total) * 100, 2) : 0;
+
+        $examAttempt->update([
+            'correct_answer' => $correct,
+            'wrong_answer' => $wrong,
+            'score' => $score,
+            'finished_at' => now(),
+        ]);
+
+        Score::create([
+            'user_id' => $user->id,
+            'exam_id' => $exam->id,
+            'attempt_number' => $examAttempt->id,
+            'correct_answers' => $correct,
+            'total_questions' => $total,
+            'score' => $score,
+        ]);
+
+        session()->forget(['attempt_id', 'selected_exam_id']);
+
+        return response()->json([
+            'status' => 'ok',
+            'score' => $score,
+            'message' => '✅ Ujian selesai. Skor berhasil disimpan!',
+        ]);
     }
 
-    // 🔹 Hitung total dan nilai
-    $totalSoal = $questions->count();
-    $nilaiAkhir = $totalSoal > 0 ? round(($benar / $totalSoal) * 100, 2) : 0;
+    /**
+     * 📋 Cek jawaban (opsional)
+     */
+    public function cekJawaban()
+    {
+        $user = Auth::user();
+        $attemptId = session('attempt_id');
 
-    // 🔹 Hitung percobaan keberapa
-    $attemptNumber = Score::where('user_id', $user->id)->count() + 1;
+        if (!$attemptId) {
+            return response()->json(['status' => 'error', 'message' => 'Attempt tidak ditemukan.']);
+        }
 
-    // 🔹 Simpan hasil ke tabel scores
-    Score::create([
-        'user_id' => $user->id,
-        'attempt_number' => $attemptNumber,
-        'correct_answers' => $benar,
-        'total_questions' => $totalSoal,
-        'score' => $nilaiAkhir,
-    ]);
+        $answers = Answer::where('user_id', $user->id)
+            ->where('attempt_number', $attemptId)
+            ->get();
 
-    // 🔹 Hapus session ujian (tanpa hapus jawaban lama)
-    session()->forget(['exam_questions', 'exam_start_time', 'answered_questions']);
-
-    // 🔹 Kembalikan respons ke frontend
-    return response()->json([
-        'status' => 'ok',
-        'message' => "✅ Ujian selesai!\nBenar: {$benar}, Salah: {$salah}, Kosong: {$kosong}, Nilai: {$nilaiAkhir}",
-        'redirect' => route('peserta.ujian.cekJawaban'),
-    ]);
-}
-
-
-public function hasil()
-{
-    $user = Auth::user();
-
-    // 🔹 Ambil hasil ujian terakhir dari tabel scores
-    $latestScore = \App\Models\Score::where('user_id', $user->id)
-        ->latest('created_at')
-        ->first();
-
-    // 🔹 Ambil semua jawaban user (untuk ditampilkan jika perlu)
-    $answers = \App\Models\Answer::where('user_id', $user->id)
-        ->with('question')
-        ->get();
-
-    // 🔹 Hitung jumlah benar, salah, kosong
-    $benar = $answers->filter(function ($ans) {
-        return strtolower(trim($ans->answer ?? '')) === strtolower(trim($ans->question->correct_answer ?? ''));
-    })->count();
-
-    $salah = $answers->filter(function ($ans) {
-        return $ans->answer !== '' && strtolower(trim($ans->answer)) !== strtolower(trim($ans->question->correct_answer ?? ''));
-    })->count();
-
-    $kosong = $answers->where('answer', '')->count();
-
-    $totalSoal = $answers->count();
-
-    return view('peserta.hasil', compact(
-        'latestScore',
-        'answers',
-        'benar',
-        'salah',
-        'kosong',
-        'totalSoal'
-    ));
-}
-
-
-
-public function cekJawaban()
-{
-    $user = Auth::user();
-
-    // Ambil data score terakhir
-    $score = \App\Models\Score::where('user_id', $user->id)
-        ->latest()
-        ->first();
-
-    if (!$score) {
-        return redirect()->route('peserta.dashboard')->with('error', 'Belum ada hasil ujian.');
+        return response()->json(['status' => 'ok', 'answers' => $answers]);
     }
-
-    // Hitung jumlah benar, salah, kosong
-    $answers = \App\Models\Answer::where('user_id', $user->id)->get();
-    $total_questions = \App\Models\Question::count();
-    $correct_answers = $score->correct_answers ?? 0;
-    $answered_questions = $answers->where('answer', '!=', '')->count();
-    $wrong_answers = $answered_questions - $correct_answers;
-    $unanswered = $total_questions - $answered_questions;
-
-    return view('peserta.hasil', [
-        'total_questions' => $total_questions,
-        'correct_answers' => $correct_answers,
-        'wrong_answers' => $wrong_answers,
-        'unanswered' => $unanswered,
-        'score' => $score->score,
-    ]);
-}
-
-
-
-
 }

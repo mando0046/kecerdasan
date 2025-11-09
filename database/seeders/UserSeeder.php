@@ -21,7 +21,7 @@ class UserSeeder extends Seeder
                 'name' => 'Agus Gondrong',
                 'email' => 'agus@gmail.com',
                 'password' => 'password',
-                'role' => 'peserta',
+                'role' => 'guest',
             ],
             [
                 'name' => 'Assyifa Divya Carla',
@@ -82,6 +82,12 @@ class UserSeeder extends Seeder
                 'email' => 'nia@gmail.com',
                 'password' => 'password',
                 'role' => 'guest',
+            ], 
+              [
+                'name' => 'Ratna Dewi Rengganias',
+                'email' => 'cantik@gmail.com',
+                'password' => 'password',
+                'role' => 'peserta',
             ], 
         ];
 

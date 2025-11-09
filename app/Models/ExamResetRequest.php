@@ -13,23 +13,18 @@ class ExamResetRequest extends Model
         'user_id',
         'status',
         'reason',
-        'type',              // 🆕 Jenis permintaan: reset_exam / extra_time
-        'requested_minutes', // 🆕 Jumlah menit tambahan jika type = extra_time
+        'requested_at',
     ];
 
-    /**
-     * Relasi ke model User
-     */
+    // Pastikan semua field datetime di-cast ke Carbon
+    protected $casts = [
+        'created_at'   => 'datetime',
+        'updated_at'   => 'datetime',
+        'requested_at' => 'datetime', // tambahkan jika field ini tanggal/waktu
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    /**
-     * Scope untuk filter berdasarkan jenis permintaan
-     */
-    public function scopeOfType($query, $type)
-    {
-        return $query->where('type', $type);
     }
 }
