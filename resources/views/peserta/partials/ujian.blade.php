@@ -1,5 +1,5 @@
 <x-app-layout>
-    <div class="w-full max-w-[100vw] p-2 sm:p-4 md:p-6 lg:p-8">
+    <div class="w-full max-w-[90vw] p-2 sm:p-4 md:p-6 lg:p-8">
         <!-- Judul dan Timer -->
         <div class="text-center mb-4">
             <h2 class="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">🧠 {{ $exam->name }}</h2>
@@ -244,17 +244,37 @@
                     });
             }
 
-            function autoSubmitExam() {
-                if (timerInterval) clearInterval(timerInterval);
-                Swal.fire({
-                    icon: 'warning',
-                    title: '⏰ Waktu Habis!',
-                    text: 'Ujian dikirim otomatis...',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    didClose: () => window.location.href = "{{ route('peserta.hasil.index') }}"
-                });
-            }
+
+
+function autoSubmitExam() {
+    if (timerInterval) clearInterval(timerInterval);
+
+    fetch(`{{ route('peserta.ujian.submit') }}`, {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+        },
+        body: JSON.stringify({
+            exam_id: {{ $exam->id }}
+        })
+    })
+    .then(res => res.json())
+    .then(() => {
+        Swal.fire({
+            icon: 'warning',
+            title: '⏰ Waktu Habis!',
+            text: 'Jawaban Anda telah dikirim otomatis.',
+            timer: 2000,
+            showConfirmButton: false,
+            didClose: () => window.location.href = "{{ route('peserta.hasil.index') }}"
+        });
+    })
+    .catch(() => {
+        Swal.fire('❌ Error', 'Gagal mengirim hasil ujian otomatis.', 'error');
+    });
+}
+
 
             btnSubmit.addEventListener('click', confirmSubmitExam);
 

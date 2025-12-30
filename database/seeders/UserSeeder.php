@@ -17,79 +17,15 @@ class UserSeeder extends Seeder
                 'password' => 'Sumda#0046',
                 'role' => 'admin',
             ],
-            [
-                'name' => 'Agus Gondrong',
-                'email' => 'agus@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],
-            [
+
+	       [
                 'name' => 'Assyifa Divya Carla',
                 'email' => 'arla@gmail.com',
                 'password' => 'password',
                 'role' => 'peserta',
             ],
-            [
-                'name' => 'Tamu Ujian',
-                'email' => 'tamu@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],
-             [
-                'name' => 'Suryadi Pratama',
-                'email' => 'surya@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],
-            [
-                'name' => 'Singgih Suandi',
-                'email' => 'ingkeh@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],
-            [
-                'name' => 'Rizki Ramadhan',
-                'email' => 'rizki@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],
-            [
-                'name' => 'Dewi Sartika',
-                'email' => 'sartika@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],
-            [
-                'name' => 'Budi Santoso',
-                'email' => 'budi@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],    
-             [
-                'name' => 'Eko Waluyo',
-                'email' => 'waluyo@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],  
-              [
-                'name' => 'Dedy Iswadi',
-                'email' => 'dedy@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ],   
-              [
-                'name' => 'Nia Ramadani',
-                'email' => 'nia@gmail.com',
-                'password' => 'password',
-                'role' => 'guest',
-            ], 
-              [
-                'name' => 'Ratna Dewi Rengganias',
-                'email' => 'cantik@gmail.com',
-                'password' => 'password',
-                'role' => 'peserta',
-            ], 
-        ];
+            
+                ];
 
         foreach ($users as $data) {
             User::updateOrCreate(

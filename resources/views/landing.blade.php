@@ -1,3 +1,4 @@
+
 <x-app-layout>
     <div class="min-h-screen bg-gray-100 flex flex-col">
         <!-- 🔔 Flash Message -->
@@ -26,13 +27,13 @@
             <!-- Text Content -->
             <div class="md:w-1/2 flex flex-col justify-center space-y-3 mt-0">
                 <h1 class="text-5xl md:text-6xl font-bold text-green-700 leading-tight">
-                    Simulasi Ujian Online Psikologi
+                    Simulasi Ujian Online Kecerdasan
                 </h1>
 
                 {{-- Guest (belum login) --}}
                 @guest
                     <p class="text-lg text-gray-700">
-                        Selamat datang di platform <span class="font-semibold text-green-700">Ujian Online</span>. <br>
+                        Selamat datang di platform <span class="font-semibold text-green-700">Simulasi Ujian Online Psikologi</span>. <br>
                         Login atau daftar sekarang untuk mengikuti ujian dengan mudah dan cepat.
                     </p>
 
@@ -111,23 +112,29 @@
         </div>
 
         <!-- Features Section -->
-        <div class="bg-white py-12 mt-10">
-            <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-                <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
-                    <h3 class="text-xl font-semibold mb-2">Aplikasi web Ujian Online</h3>
-                    <p class="text-gray-600">Aplikasi ini digunakan untuk mengukur kemampuan peserta dalam ujian online.
-                    </p>
-                </div>
-                <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
-                    <h3 class="text-xl font-semibold mb-2">Aman & Terpercaya</h3>
-                    <p class="text-gray-600">Data ujian dan peserta aman tersimpan di server.</p>
-                </div>
-                <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
-                    <h3 class="text-xl font-semibold mb-2">Trouble</h3>
-                    <p class="text-gray-600">Jika ada error atau trouble pada plikasi silahkan hubungi kami di no wa
-                        082341436666.</p>
-                </div>
-            </div>
+
+<!-- Features Section - hanya tampil untuk guest -->
+@guest
+<div class="bg-white py-12 mt-10">
+    <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+        <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
+            <h3 class="text-xl font-semibold mb-2">Tertarik/ingin bergabung belajar menggunakan aplikasi ini</h3>
+            <p class="text-gray-600">hubungi kami di no wa 082341436666</p>
         </div>
+        <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
+            <h3 class="text-xl font-semibold mb-2">Yang anda dapatkan</h3>
+            <p class="text-gray-600">Modul/Buku soal-soal Kecerdasan, Kepribadin dan kecermatan</p>
+            <p class="text-gray-600">akses aplikasi Kecerdasan, kepribadian dan kecermatan tanpa batas waktu</p>
+        </div>
+        <div class="p-6 border rounded-lg shadow-sm hover:shadow-lg transition-all duration-300">
+            <p class="text-gray-600">Anda bisa belajar secara tatap muka atau online menggunakan aplikasi sampai anda 
+            lulus atau berhenti sendiri — hanya sekali bayar.</p>
+        </div>
+    </div>
+</div>
+@endguest
+
+
+
     </div>
 </x-app-layout>

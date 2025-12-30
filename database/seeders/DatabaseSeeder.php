@@ -34,14 +34,14 @@ class DatabaseSeeder extends Seeder
         );
 
         // 3️⃣ Akun peserta tambahan opsional
-        User::updateOrCreate(
-            ['email' => 'rozi@gmail.com'],
-            [
-                'name' => 'Muhammad Fahrurrozi',
-                'password' => Hash::make('password'),
-                'role' => 'Operator',
-            ]
-        );
+       // User::updateOrCreate(
+         //   ['email' => 'rozi@gmail.com'],
+           // [
+             //   'name' => 'Muhammad Fahrurrozi',
+               // 'password' => Hash::make('password'),
+                //'role' => 'Operator',
+           // ]
+     //   );
 
         // 4️⃣ Jalankan seeder ujian & soal
         $this->call([
@@ -49,7 +49,7 @@ class DatabaseSeeder extends Seeder
             ExamSeeder::class,      // buat data ujian
             Cerdas1Seeder::class,      // buat soal cerdas1
             Cerdas2Seeder::class,      // buat data cerdas2
-            PribadiSeeder::class,      // buat data Pribadi1
+            Cerdas3Seeder::class,      // buat data Cerdas 3
         ]);
 
         // ✅ Kamu bisa tambahkan seeder lain di sini (scores, exam_attempts, dll)

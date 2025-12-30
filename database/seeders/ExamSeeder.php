@@ -17,26 +17,26 @@ class ExamSeeder extends Seeder
         // ✅ Masukkan 3 data ujian simulasi
         DB::table('exams')->insert([
             [
-                'name' => 'Simulasi Tes Kecerdasan',
+                'name' => 'Pra Simulasi Tes Kecerdasan',
                 'description' => 'Tes untuk mengukur tingkat kecerdasan logis dan analitis.',
-                'duration' => 60, // menit
+                'duration' => 25, // menit
                 'total_questions' => 50,
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Simulasi Tes Kecerdasan ke-2',
+                'name' => 'Simulasi Tes Kecerdasan',
                 'description' => 'Tes untuk mengukur tingkat kecerdasan logis dan analitis.',
-                'duration' => 0, // menit
-                'total_questions' => 0,
+                'duration' => 60, // menit
+                'total_questions' => 100,
                 'is_active' => true,
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
             [
-                'name' => 'Simulasi Tes Kepribadian',
-                'description' => 'Tes untuk mengenali Profil kepribadian peserta.',
+                'name' => 'Simulasi Tes Kecerdasan ke-2',
+                'description' => 'Tes untu mengukur tingkat kecerdasan logis dan anlistis',
                 'duration' => 60,
                 'total_questions' => 100,
                 'is_active' => true,
